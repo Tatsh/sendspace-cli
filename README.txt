@@ -1,5 +1,3 @@
-# Usage:
+Usage: ``sendspace FILE``
 
-```bash
-sendspace FILE
-```
+You get back the URL to the page on SendSpace for download.
