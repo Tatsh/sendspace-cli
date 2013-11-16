@@ -1,12 +1,10 @@
-from base64 import b64encode as base64_encode
+from io import StringIO
 from os.path import getsize, realpath
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 import hashlib
+import pycurl
 import xml.etree.ElementTree as ET
-
-from poster.encode import multipart_encode
-from poster.streaminghttp import register_openers as register_poster_openers
 
 API_ERROR_NO_METHOD = 1
 API_ERROR_UNKNOWN_METHOD = 2
@@ -141,6 +139,8 @@ class SendspaceRESTAPI:
 
         return self._call_api_method('upload.getinfo', params)
 
+    # TODO Give more detailed structured output
+    # TODO Pass description, recipient_email, notify_uploader arguments
     def upload_file(self, filename, speed_limit=0, target=None, user_agent=CHROME_USER_AGENT, **kwargs):
         info = self.get_upload_info(speed_limit=0, **kwargs)
         post_url = info['params']['upload'][0]['attributes']['url']
@@ -149,25 +149,34 @@ class SendspaceRESTAPI:
         max_filesize = int(info['params']['upload'][0]['attributes']['max_file_size'])
         extra_info = info['params']['upload'][0]['attributes']['extra_info']
         filename = realpath(filename)
-        opener = register_poster_openers()
 
         if getsize(filename) > max_filesize:
             print('%s size is greater than max file size of %d bytes' % (filename, max_filesize))
 
         with open(filename, 'rb') as f:
-            params = {
-                'MAX_FILE_SIZE': max_filesize,
-                'UPLOAD_IDENTIFIER': identifier,
-                'extra_info': extra_info,
-                'userfile': f,
+            params = [
+                ('MAX_FILE_SIZE', str(max_filesize)),
+                ('UPLOAD_IDENTIFIER', identifier),
+                ('extra_info', extra_info),
+                ('userfile', (pycurl.FORM_FILE, filename,)),
                 #'description': '',
                 #'recipient_email': '',
                 #'notify_uploader': '',
-            }
-            datagen, headers = multipart_encode(params)
-            headers['User-Agent'] = user_agent
-            response = opener.open(Request(post_url, datagen, headers))
-            content = response.read().decode('utf-8')
+            ]
+
+            c = pycurl.Curl()
+
+            c.setopt(c.URL, post_url)
+            c.setopt(c.HTTPPOST, params)
+            c.setopt(c.USERAGENT, user_agent)
+            #c.setopt(c.VERBOSE, True)
+
+            b = StringIO()
+            c.setopt(pycurl.WRITEFUNCTION, b.write)
+            c.perform()
+            c.close()
+
+            content = b.getvalue()
             file_id = None
 
             if 'upload_status=fail' in content:
@@ -181,7 +190,9 @@ class SendspaceRESTAPI:
             if not file_id:
                 raise SendspaceRESTAPIError('Could not upload file: file ID not found')
 
-            return 'http://www.sendspace.com/file/%s' % (file_id)
+            return {
+                'url': 'http://www.sendspace.com/file/%s' % (file_id)
+            }
 
 
     def _parse_response(self, xml):

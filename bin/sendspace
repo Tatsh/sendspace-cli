@@ -39,4 +39,11 @@ if __name__ == '__main__':
         with open(expanduser('~/.sendspace-session'), 'w') as f:
             f.write(session_id + '\n')
 
-    upload_info = rest.upload_file(sys.argv[1])
+    try:
+        print(rest.upload_file(sys.argv[1])['url'])
+    except IndexError:
+        print('Usage: sendspace FILE', file=sys.stderr)
+        sys.exit(1)
+    except SendspaceRESTAPIError as e:
+        print(e, file=sys.stderr)
+        sys.exit(1)
