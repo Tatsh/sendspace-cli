@@ -153,46 +153,49 @@ class SendspaceRESTAPI:
         if getsize(filename) > max_filesize:
             print('%s size is greater than max file size of %d bytes' % (filename, max_filesize))
 
-        with open(filename, 'rb') as f:
-            params = [
-                ('MAX_FILE_SIZE', str(max_filesize)),
-                ('UPLOAD_IDENTIFIER', identifier),
-                ('extra_info', extra_info),
-                ('userfile', (pycurl.FORM_FILE, filename,)),
-                #'description': '',
-                #'recipient_email': '',
-                #'notify_uploader': '',
-            ]
+        try:
+            with open(filename, 'rb') as f:
+                params = [
+                    ('MAX_FILE_SIZE', str(max_filesize)),
+                    ('UPLOAD_IDENTIFIER', identifier),
+                    ('extra_info', extra_info),
+                    ('userfile', (pycurl.FORM_FILE, filename,)),
+                    #'description': '',
+                    #'recipient_email': '',
+                    #'notify_uploader': '',
+                ]
 
-            c = pycurl.Curl()
+                c = pycurl.Curl()
 
-            c.setopt(c.URL, post_url)
-            c.setopt(c.HTTPPOST, params)
-            c.setopt(c.USERAGENT, user_agent)
-            #c.setopt(c.VERBOSE, True)
+                c.setopt(c.URL, post_url)
+                c.setopt(c.HTTPPOST, params)
+                c.setopt(c.USERAGENT, user_agent)
+                #c.setopt(c.VERBOSE, True)
 
-            b = StringIO()
-            c.setopt(pycurl.WRITEFUNCTION, b.write)
-            c.perform()
-            c.close()
+                b = StringIO()
+                c.setopt(pycurl.WRITEFUNCTION, b.write)
+                c.perform()
+                c.close()
 
-            content = b.getvalue()
-            file_id = None
+                content = b.getvalue()
+                file_id = None
 
-            if 'upload_status=fail' in content:
-                raise SendspaceRESTAPIError('Could not upload file: %s' % (content))
+                if 'upload_status=fail' in content:
+                    raise SendspaceRESTAPIError('Could not upload file: %s' % (content))
 
-            for line in content.splitlines():
-                if 'file_id=' in line:
-                    file_id = line.split('=')[1]
-                    break
+                for line in content.splitlines():
+                    if 'file_id=' in line:
+                        file_id = line.split('=')[1]
+                        break
 
-            if not file_id:
-                raise SendspaceRESTAPIError('Could not upload file: file ID not found')
+                if not file_id:
+                    raise SendspaceRESTAPIError('Could not upload file: file ID not found')
 
-            return {
-                'url': 'http://www.sendspace.com/file/%s' % (file_id)
-            }
+                return {
+                    'url': 'http://www.sendspace.com/file/%s' % (file_id)
+                }
+        except IOError:
+            raise SendspaceRESTAPIError('File %s could not be opened' % (filename))
 
 
     def _parse_response(self, xml):
