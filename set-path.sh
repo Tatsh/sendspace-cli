@@ -1,2 +1,2 @@
-export PYTHONPATH="$PWD/sendspace:$PYTHONPATH"
+export PYTHONPATH="$PWD:$PYTHONPATH"
 export PATH="$PWD/bin:$PATH"
