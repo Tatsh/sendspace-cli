@@ -1,3 +1,4 @@
+from __future__ import print_function
 from io import StringIO
 from os.path import getsize, realpath
 from urllib.parse import urlencode
