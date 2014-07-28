@@ -176,7 +176,7 @@ class SendspaceRESTAPI:
                 c.setopt(c.URL, post_url)
                 c.setopt(c.HTTPPOST, params)
                 c.setopt(c.USERAGENT, user_agent)
-                c.setopt(c.VERBOSE, True)
+                #c.setopt(c.VERBOSE, True)
 
                 b = BytesIO()
                 c.setopt(pycurl.WRITEDATA, b)
