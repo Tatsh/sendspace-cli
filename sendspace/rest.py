@@ -1,8 +1,13 @@
 from __future__ import print_function
-from io import StringIO
 from os.path import getsize, realpath
-from urllib.parse import urlencode
-from urllib.request import urlopen, Request
+try:
+    from io import BytesIO
+    from urllib.parse import urlencode
+    from urllib.request import urlopen, Request
+except ImportError:
+    from StringIO import StringIO as BytesIO
+    from urllib import urlencode
+    from urllib2 import urlopen, Request
 import hashlib
 import pycurl
 import xml.etree.ElementTree as ET
@@ -171,14 +176,14 @@ class SendspaceRESTAPI:
                 c.setopt(c.URL, post_url)
                 c.setopt(c.HTTPPOST, params)
                 c.setopt(c.USERAGENT, user_agent)
-                #c.setopt(c.VERBOSE, True)
+                c.setopt(c.VERBOSE, True)
 
-                b = StringIO()
-                c.setopt(pycurl.WRITEFUNCTION, b.write)
+                b = BytesIO()
+                c.setopt(pycurl.WRITEDATA, b)
                 c.perform()
                 c.close()
 
-                content = b.getvalue()
+                content = b.getvalue().decode('utf-8')
                 file_id = None
 
                 if 'upload_status=fail' in content:
