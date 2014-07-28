@@ -1,2 +1,0 @@
-export PYTHONPATH="$PWD:$PYTHONPATH"
-export PATH="$PWD/bin:$PATH"
