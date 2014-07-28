@@ -11,4 +11,8 @@ setup(
     license='LICENSE.txt',
     description='For uploading files to SendSpace from command line.',
     long_description=open('README.txt').read(),
+    install_requires=[
+        'pycurl>=7.19.0',
+        'PyYAML>=3.10',
+    ],
 )
