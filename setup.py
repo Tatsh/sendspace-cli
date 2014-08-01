@@ -14,7 +14,7 @@ if ((sys.version_info.major == 3 and sys.version_info.minor < 3) or
 setup(
     name='sendspace-cli',
     scripts=['bin/sendspace'],
-    version='0.1.2',
+    version='0.1.3',
     author='Andrew Udvare',
     author_email='audvare@gmail.com',
     packages=['sendspace'],
