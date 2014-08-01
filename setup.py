@@ -22,5 +22,5 @@ setup(
     license='LICENSE.txt',
     description='For uploading files to SendSpace from command line.',
     long_description=open('README.txt').read(),
-    install_requires=,
+    install_requires=requires,
 )
